@@ -26,8 +26,8 @@ namespace ChillAIMod
         private ConfigEntry<string> _targetLangConfig;
         private ConfigEntry<string> _personaConfig;
         private ConfigEntry<string> _chatApiUrlConfig;
-        private ConfigEntry<float> _TTSServicePathConfig;
-        private ConfigEntry<float> _LaunchTTSServiceConfig;
+        private ConfigEntry<string> _TTSServicePathConfig;
+        private ConfigEntry<bool> _LaunchTTSServiceConfig;
 
         // --- 新增窗口大小配置 ---
         private ConfigEntry<float> _windowWidthConfig;
@@ -139,12 +139,17 @@ namespace ChillAIMod
             _tempWidthString = _windowWidthConfig.Value.ToString("F0");
             _tempHeightString = _windowHeightConfig.Value.ToString("F0");
             _tempVolumeString = _voiceVolumeConfig.Value.ToString("F2");
-
+            string cleanPath = _TTSServicePathConfig.Value.Replace("\"", "").Trim();
             if (_LaunchTTSServiceConfig.Value && File.Exists(_TTSServicePathConfig.Value))
             {
                 try
                 {
-                    Process.Start(_TTSServicePathConfig.Value);
+                    ProcessStartInfo startInfo = new ProcessStartInfo(cleanPath)
+                    {
+                        UseShellExecute = true,
+                        WorkingDirectory = Path.GetDirectoryName(cleanPath)
+                    };
+                    Process.Start(startInfo);
                     Logger.LogInfo("已启动 TTS 服务");
                 }
                 catch (Exception ex)
@@ -300,7 +305,7 @@ namespace ChillAIMod
                 GUILayout.Label("TTS 服务路径 (run_api.bat):");
                 _TTSServicePathConfig.Value = GUILayout.TextField(_TTSServicePathConfig.Value);
                 GUILayout.Space(5);
-                _TLaunchTTSServiceConfig.Value = GUILayout.Toggle(_LaunchTTSServiceConfig.Value, "启动时自动运行 TTS 服务");
+                _LaunchTTSServiceConfig.Value = GUILayout.Toggle(_LaunchTTSServiceConfig.Value, "启动时自动运行 TTS 服务");
 
                 // 【新增音量控制 UI】
                 GUILayout.Space(5);
