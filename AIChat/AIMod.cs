@@ -156,7 +156,7 @@ namespace ChillAIMod
                     ProcessStartInfo startInfo = new ProcessStartInfo(cleanPath)
                     {
                         UseShellExecute = true,
-                        WorkingDirectory = Path.GetDirectoryName(cleanPath),
+                        WorkingDirectory = Path.GetDirectoryName(cleanPath)
                     };
                     _launchedTTSProcess = Process.Start(startInfo);
                     Logger.LogInfo("已启动 TTS 服务");
@@ -323,7 +323,6 @@ namespace ChillAIMod
                 _TTSServicePathConfig.Value = GUILayout.TextField(_TTSServicePathConfig.Value);
                 GUILayout.Space(5);
                 _LaunchTTSServiceConfig.Value = GUILayout.Toggle(_LaunchTTSServiceConfig.Value, "启动时自动运行 TTS 服务");
-                _invisibleTTSServiceConfig.Value = GUILayout.Toggle(_invisibleTTSServiceConfig.Value, "隐藏 TTS 服务窗口");
                 _quitTTSServiceOnQuitConfig.Value = GUILayout.Toggle(_quitTTSServiceOnQuitConfig.Value, "退出时自动关闭 TTS 服务");
 
                 // 【新增音量控制 UI】
