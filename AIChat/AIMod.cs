@@ -135,18 +135,26 @@ namespace ChillAIMod
             _personaConfig = Config.Bind("3. Persona", "SystemPrompt", DefaultPersona, "System Prompt");
 
             // 新增：窗口大小配置
-            _windowWidthConfig = Config.Bind("4. UI", "WindowWidth", 500f, "控制台窗口宽度");
-            _windowHeightConfig = Config.Bind("4. UI", "WindowHeightBase", 250f, "控制台窗口的基础高度 (展开设置前)");
+            // 我们希望窗口宽度是屏幕的 1/3，高度是屏幕的 1/3 (或者你喜欢的比例)
+            float responsiveWidth = Screen.width * 0.3f; // 30% 屏幕宽度
+            float responsiveHeight = Screen.height * 0.45f; // 45% 屏幕高度
 
-            // 初始化 _audioSource 音量
-            _audioSource.volume = _voiceVolumeConfig.Value;
+            // 绑定配置 (默认值使用刚才算出来的动态值)
+            _windowWidthConfig = Config.Bind("4. UI", "WindowWidth", responsiveWidth, "控制台窗口宽度");
+            _windowHeightConfig = Config.Bind("4. UI", "WindowHeightBase", responsiveHeight, "控制台窗口的基础高度");
 
-            // 初始化 _windowRect 的位置和大小
-            // 使用基础高度居中
+            // ================= 【修改点 2: 左上角对齐】 =================
+            // 以前是 Screen.width / 2 (居中)，现在改为左上角 + 边距
+            float margin = 20f; // 距离左上角的像素边距
+
+            // 如果你是第一次运行（或者想强制重置位置），可以直接使用 margin
+            // 但为了保留用户拖拽后的位置，通常不强制覆盖 _windowRect 的 x/y，
+            // 除非你想每次启动都复位。这里我们演示【每次启动都复位到左上角】：
+            
             _windowRect = new Rect(
-                Screen.width / 2 - _windowWidthConfig.Value / 2,
-                Screen.height / 2 - _windowHeightConfig.Value / 2,
-                _windowWidthConfig.Value,
+                margin,               // X: 距离左边 20px
+                margin,               // Y: 距离顶端 20px
+                _windowWidthConfig.Value, 
                 _windowHeightConfig.Value
             );
 
@@ -214,12 +222,14 @@ namespace ChillAIMod
                 if (Time.unscaledTime - 0 > 0.2f) // 简单防抖
                 {
                     _showInputWindow = !_showInputWindow;
-                    // 每次打开时，重新计算 X 轴居中
-                    if (_showInputWindow)
-                    {
-                        _windowRect.x = Screen.width / 2 - _windowWidthConfig.Value / 2;
-                    }
-                    e.Use();
+                    // // 每次打开时，重新计算 X 轴居中
+                    // if (_showInputWindow)
+                    // {
+                    //     float margin = 20f;
+                    //     _windowRect.x = margin;
+                    //     _windowRect.y = margin;
+                    // }
+                    // e.Use();
                 }
             }
 
@@ -291,53 +301,102 @@ namespace ChillAIMod
 
         void DrawWindowContent(int windowID)
         {
+            // ================= 【1. 动态尺寸计算】 =================
+            // 根据屏幕高度计算基础字号 (2.5% 屏幕高度)
+            int dynamicFontSize = (int)(Screen.height * 0.015f);
+            dynamicFontSize = Mathf.Clamp(dynamicFontSize, 14, 40);
+
+            // 全局样式应用
+            GUI.skin.label.fontSize = dynamicFontSize;
+            GUI.skin.button.fontSize = dynamicFontSize;
+            GUI.skin.textField.fontSize = dynamicFontSize;
+            GUI.skin.textArea.fontSize = dynamicFontSize;
+            GUI.skin.toggle.fontSize = dynamicFontSize;
+            GUI.skin.box.fontSize = dynamicFontSize;
+
+            // 基础行高
+            float elementHeight = dynamicFontSize * 1.6f;
+
+            // 常用宽度定义
+            float labelWidth = elementHeight * 4f; 
+            float inputWidth = elementHeight * 3f; 
+            float btnWidth   = elementHeight * 2f; 
+            // =======================================================
+
+            // 开始滚动视图
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
+            
+            // 开始整体垂直布局
             GUILayout.BeginVertical();
 
+            // 状态显示
             string status = _heroineService != null ? "🟢 核心已连接" : "🔴 正在寻找核心...";
             GUILayout.Label(status);
 
             string ttsStatus = _isTTSServiceReady ? "🟢 TTS 服务已就绪" : "🔴 正在等待 TTS 服务启动...";
             GUILayout.Label(ttsStatus);
 
-            if (GUILayout.Button(_showSettings ? "🔽 收起设置" : "▶️ 展开设置 (API / 人设 / 路径)", GUILayout.Height(25)))
+            // 设置展开按钮 (全宽)
+            string settingsBtnText = _showSettings ? "🔽 收起设置 (Hide Settings)" : "▶️ 展开设置 (Show Settings)";
+            if (GUILayout.Button(settingsBtnText, GUILayout.Height(elementHeight)))
             {
                 _showSettings = !_showSettings;
             }
 
+            // ================= 【设置面板区域】 =================
             if (_showSettings)
             {
                 GUILayout.Space(10);
-                GUILayout.BeginVertical("box");
+
+                // 【关键修复】统一计算内部 Box 宽度
+                // 留出 50px 给滚动条和边框，防止爆边
+                float innerBoxWidth = _windowRect.width - 50f; 
+
+                // --- 1. 基础配置 Box ---
+                GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
                 GUILayout.Label("<b>--- 基础配置 ---</b>");
+                // 给长文本也加上 MinWidth，防止撑爆 Box
                 GUILayout.Label("API URL:");
-                _chatApiUrlConfig.Value = GUILayout.TextField(_chatApiUrlConfig.Value);
+                _chatApiUrlConfig.Value = GUILayout.TextField(_chatApiUrlConfig.Value, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
                 GUILayout.Label("API Key:");
-                _apiKeyConfig.Value = GUILayout.TextField(_apiKeyConfig.Value);
+                _apiKeyConfig.Value = GUILayout.TextField(_apiKeyConfig.Value, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
                 GUILayout.Label("Model Name:");
-                _modelConfig.Value = GUILayout.TextField(_modelConfig.Value);
+                _modelConfig.Value = GUILayout.TextField(_modelConfig.Value, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
                 GUILayout.EndVertical();
 
                 GUILayout.Space(5);
-                GUILayout.BeginVertical("box");
+
+                // --- 2. 语音配置 Box ---
+                GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
                 GUILayout.Label("<b>--- 语音配置 ---</b>");
                 GUILayout.Label("音频路径 (.wav):");
-                _refAudioPathConfig.Value = GUILayout.TextField(_refAudioPathConfig.Value);
+                // 路径通常很长，必须加 MinWidth(50f)
+                _refAudioPathConfig.Value = GUILayout.TextField(_refAudioPathConfig.Value, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
+                
                 GUILayout.Label("音频台词:");
-                _promptTextConfig.Value = GUILayout.TextArea(_promptTextConfig.Value, GUILayout.Height(50));
-                GUILayout.Label("TTS 服务路径 (run_api.bat):");
-                _TTSServicePathConfig.Value = GUILayout.TextField(_TTSServicePathConfig.Value);
-                GUILayout.Space(5);
-                _LaunchTTSServiceConfig.Value = GUILayout.Toggle(_LaunchTTSServiceConfig.Value, "启动时自动运行 TTS 服务");
-                _quitTTSServiceOnQuitConfig.Value = GUILayout.Toggle(_quitTTSServiceOnQuitConfig.Value, "退出时自动关闭 TTS 服务");
+                _promptTextConfig.Value = GUILayout.TextArea(_promptTextConfig.Value, GUILayout.Height(elementHeight * 3), GUILayout.MinWidth(50f));
+                
+                GUILayout.Label("TTS 服务路径:");
+                _TTSServicePathConfig.Value = GUILayout.TextField(_TTSServicePathConfig.Value, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
 
-                // 【新增音量控制 UI】
                 GUILayout.Space(5);
-                GUILayout.Label($"语音音量 (0.00 - 1.00): {_voiceVolumeConfig.Value:F2}");
+                _LaunchTTSServiceConfig.Value = GUILayout.Toggle(_LaunchTTSServiceConfig.Value, "启动时自动运行 TTS 服务", GUILayout.Height(elementHeight));
+                _quitTTSServiceOnQuitConfig.Value = GUILayout.Toggle(_quitTTSServiceOnQuitConfig.Value, "退出时自动关闭 TTS 服务", GUILayout.Height(elementHeight));
+                GUILayout.EndVertical(); // <--- 必须结束！
+
+                GUILayout.Space(5);
+
+                // --- 3. 音量配置 Box ---
+                GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
+                GUILayout.Label($"语音音量: {_voiceVolumeConfig.Value:F2}");
+                
+                // 第一行：滑动条
                 GUILayout.BeginHorizontal();
-
-                // 滑动条控制音量
+                GUILayout.Space(5);
                 float newVolume = GUILayout.HorizontalSlider(_voiceVolumeConfig.Value, 0.0f, 1.0f);
+                GUILayout.Space(5);
+                GUILayout.EndHorizontal();
+
                 if (newVolume != _voiceVolumeConfig.Value)
                 {
                     _voiceVolumeConfig.Value = newVolume;
@@ -345,100 +404,90 @@ namespace ChillAIMod
                     _tempVolumeString = newVolume.ToString("F2");
                 }
 
-                // 文本输入和应用按钮
+                // 第二行：输入框+按钮
                 GUILayout.Space(5);
-                _tempVolumeString = GUILayout.TextField(_tempVolumeString, GUILayout.Width(50));
-                if (GUILayout.Button("应用", GUILayout.Width(40)))
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("手动输入:", GUILayout.Width(labelWidth), GUILayout.Height(elementHeight));
+
+                _tempVolumeString = GUILayout.TextField(_tempVolumeString, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f)); 
+                if (GUILayout.Button("应用", GUILayout.Width(btnWidth), GUILayout.Height(elementHeight)))
                 {
                     if (float.TryParse(_tempVolumeString, out float parsedVolume))
                     {
-                        // 限制音量在 0.0 到 1.0 之间
                         parsedVolume = Mathf.Clamp(parsedVolume, 0.0f, 1.0f);
                         _voiceVolumeConfig.Value = parsedVolume;
                         _audioSource.volume = parsedVolume;
                         _tempVolumeString = parsedVolume.ToString("F2");
                     }
-                    else
-                    {
-                        Logger.LogError("音量输入无效，请使用数字 (0.0 - 1.0)");
-                        _tempVolumeString = _voiceVolumeConfig.Value.ToString("F2"); // 恢复显示配置值
-                    }
                 }
-
                 GUILayout.EndHorizontal();
-                GUILayout.EndVertical();
-                // 【音量控制 UI 结束】
+                GUILayout.EndVertical(); // <--- 必须结束！
 
-                // 窗口大小调整配置 (依然保留精确输入)
                 GUILayout.Space(5);
-                GUILayout.BeginVertical("box");
-                GUILayout.Label("<b>--- 界面配置 (窗口大小) ---</b>");
 
-                // 窗口宽度
+                // --- 4. 窗口大小 Box ---
+                GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
+                GUILayout.Label("<b>--- 界面配置 ---</b>");
+
+                // 宽度设置
                 GUILayout.Label($"当前宽度: {_windowWidthConfig.Value:F0}px");
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("新宽度:", GUILayout.Width(60));
-                _tempWidthString = GUILayout.TextField(_tempWidthString);
-                if (GUILayout.Button("应用", GUILayout.Width(50)))
+                GUILayout.Label("新宽度:", GUILayout.Width(labelWidth), GUILayout.Height(elementHeight));
+                
+                // 【核心修改】允许缩小
+                _tempWidthString = GUILayout.TextField(_tempWidthString, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
+                
+                if (GUILayout.Button("应用", GUILayout.Width(btnWidth), GUILayout.Height(elementHeight)))
                 {
                     if (float.TryParse(_tempWidthString, out float newWidth) && newWidth >= 300f)
                     {
                         _windowWidthConfig.Value = newWidth;
-                        // 重新居中
-                        _windowRect.x = Screen.width / 2 - newWidth / 2;
+                        // 这里删除了重置居中代码，只改大小
                         _tempWidthString = newWidth.ToString("F0");
-                    }
-                    else
-                    {
-                        Logger.LogError("宽度输入无效，必须大于或等于 300px");
-                        _tempWidthString = _windowWidthConfig.Value.ToString("F0"); // 恢复显示配置值
                     }
                 }
                 GUILayout.EndHorizontal();
 
-                // 窗口基础高度
+                // 高度设置
                 GUILayout.Label($"当前基础高度: {_windowHeightConfig.Value:F0}px");
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("新高度:", GUILayout.Width(60));
-                _tempHeightString = GUILayout.TextField(_tempHeightString);
-                if (GUILayout.Button("应用", GUILayout.Width(50)))
+                GUILayout.Label("新高度:", GUILayout.Width(labelWidth), GUILayout.Height(elementHeight));
+                
+                // 【核心修改】允许缩小
+                _tempHeightString = GUILayout.TextField(_tempHeightString, GUILayout.Height(elementHeight), GUILayout.MinWidth(50f));
+                
+                if (GUILayout.Button("应用", GUILayout.Width(btnWidth), GUILayout.Height(elementHeight)))
                 {
                     if (float.TryParse(_tempHeightString, out float newHeight) && newHeight >= 100f)
                     {
                         _windowHeightConfig.Value = newHeight;
                         _tempHeightString = newHeight.ToString("F0");
                     }
-                    else
-                    {
-                        Logger.LogError("基础高度输入无效，必须大于或等于 100px");
-                        _tempHeightString = _windowHeightConfig.Value.ToString("F0"); // 恢复显示配置值
-                    }
                 }
                 GUILayout.EndHorizontal();
-
-                GUILayout.EndVertical();
-                // --- 窗口大小调整配置结束 ---
+                GUILayout.EndVertical(); // <--- 必须结束！
 
                 GUILayout.Space(5);
-                GUILayout.BeginVertical("box");
+
+                // --- 5. 人设配置 Box ---
+                GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
                 GUILayout.Label("<b>--- 人设 (System Prompt) ---</b>");
-
-                _personaScrollPosition = GUILayout.BeginScrollView(_personaScrollPosition, GUILayout.Height(150));
-
+                _personaScrollPosition = GUILayout.BeginScrollView(_personaScrollPosition, GUILayout.Height(elementHeight * 5));
                 _personaConfig.Value = GUILayout.TextArea(_personaConfig.Value, GUILayout.ExpandHeight(true));
-
                 GUILayout.EndScrollView();
-
-                GUILayout.EndVertical();
+                GUILayout.EndVertical(); // <--- 必须结束！
 
                 GUILayout.Space(10);
-                if (GUILayout.Button("💾 保存所有配置", GUILayout.Height(30)))
+                
+                // 保存按钮
+                if (GUILayout.Button("💾 保存所有配置", GUILayout.Height(elementHeight * 1.5f)))
                 {
                     Config.Save();
                     Logger.LogInfo("配置已保存！");
                 }
                 GUILayout.Space(10);
             }
+            // ================= 设置面板结束 =================
 
             // === 对话区域 ===
             GUILayout.Space(10);
@@ -446,19 +495,32 @@ namespace ChillAIMod
 
             GUI.backgroundColor = Color.white;
 
-            // 【输入框高度动态调整】
-            // 计算动态高度：基于窗口总高度-100f
-            float dynamicInputHeight = _windowRect.height - 100f;
-            dynamicInputHeight = Mathf.Clamp(dynamicInputHeight, 50f, 500f);
-            _playerInput = GUILayout.TextArea(_playerInput, GUILayout.Height(dynamicInputHeight));
+            // 动态计算输入框高度
+            float dynamicInputHeight = _windowRect.height - (elementHeight * 3.5f);
+            dynamicInputHeight = Mathf.Clamp(dynamicInputHeight, 50f, Screen.height * 0.8f);
+
+            GUIStyle largeInputStyle = new GUIStyle(GUI.skin.textArea);
+            largeInputStyle.fontSize = (int)(dynamicFontSize * 1.4f);
+            largeInputStyle.wordWrap = true;
+            largeInputStyle.alignment = TextAnchor.UpperLeft;
+
+            GUI.skin.textArea.wordWrap = true; 
+            _playerInput = GUILayout.TextArea(_playerInput, largeInputStyle, GUILayout.Height(dynamicInputHeight));
 
             GUILayout.Space(5);
             GUI.backgroundColor = _isProcessing ? Color.gray : Color.cyan;
 
-            GUILayout.BeginHorizontal(); // 开始水平布局
+            GUILayout.BeginHorizontal();
 
-            // --- 发送按钮 (宽度调小一点，留位置给录音) ---
-            if (GUILayout.Button(_isProcessing ? "思考中..." : "发送", GUILayout.Height(40), GUILayout.Width(_windowRect.width * 0.5f)))
+            // 1. 计算精确宽度
+            // _windowRect.width - 50f 是我们之前定义的 innerBoxWidth (与设置框对齐)
+            // 再减去 4f 是为了留出两个按钮中间的缝隙
+            float totalWidth = _windowRect.width - 50f;
+            float singleBtnWidth = (totalWidth - 4f) / 2f;
+
+            // ================== 发送按钮 ==================
+            // 使用 GUILayout.Width(singleBtnWidth) 强制固定宽度
+            if (GUILayout.Button(_isProcessing ? "思考中..." : "发送", GUILayout.Height(elementHeight * 1.5f), GUILayout.Width(singleBtnWidth)))
             {
                 if (!string.IsNullOrEmpty(_playerInput) && !_isProcessing)
                 {
@@ -467,16 +529,18 @@ namespace ChillAIMod
                 }
             }
 
-            // --- 新增：录音按钮 (按住说话) ---
-            // 1. 设置颜色
+            // ================== 录音按钮 ==================
             GUI.backgroundColor = _isRecording ? Color.red : Color.green;
             string micBtnText = _isRecording ? "🔴 松开结束" : "🎤 按住说话";
 
-            // 2. 关键步骤：只申请区域，不绘制，也不处理逻辑
-            // 这样我们就拿到了按钮应该在的位置，但不会吞掉事件
-            Rect btnRect = GUILayoutUtility.GetRect(new GUIContent(micBtnText), GUI.skin.button, GUILayout.Height(40));
+            // 使用 GUILayout.Width(singleBtnWidth) 强制固定宽度
+            Rect btnRect = GUILayoutUtility.GetRect(
+                new GUIContent(micBtnText), 
+                GUI.skin.button, 
+                GUILayout.Height(elementHeight * 1.5f), 
+                GUILayout.Width(singleBtnWidth) // <--- 强制宽度，不再依赖自动扩展
+            );
 
-            // 3. 处理输入事件 (此时事件还没被吞掉)
             Event e = Event.current;
             int controlID = GUIUtility.GetControlID(FocusType.Passive);
 
@@ -485,60 +549,45 @@ namespace ChillAIMod
                 case EventType.MouseDown:
                     if (btnRect.Contains(e.mousePosition) && !_isProcessing)
                     {
-                        // 鼠标在按钮区域按下 -> 开始录音
-                        // 把这控件设为热点，防止鼠标移出后无法检测 MouseUp
                         GUIUtility.hotControl = controlID; 
                         StartRecording();
-                        e.Use(); // 标记事件已处理
+                        e.Use();
                     }
                     break;
 
                 case EventType.MouseUp:
-                    // 如果我们是当前的热点控件 -> 停止录音
                     if (GUIUtility.hotControl == controlID)
                     {
-                        // 无论鼠标是否还在按钮内，只要松开就停止
-                        GUIUtility.hotControl = 0; // 释放热点
+                        GUIUtility.hotControl = 0;
                         StopRecordingAndRecognize();
                         e.Use();
                     }
                     break;
             }
 
-            // 4. 最后绘制按钮的外观 (使用 Box 就不会产生交互逻辑，只负责显示)
-            // 这样看起来它是个按钮，但交互逻辑完全由上面的 switch 控制
             GUI.Box(btnRect, micBtnText, GUI.skin.button);
-
-            // ================== 【结束】 ==================
 
             GUILayout.EndHorizontal();
 
+            // 结束整体布局
             GUILayout.EndVertical();
-            GUILayout.EndScrollView(); // 结束外层滚动
+            GUILayout.EndScrollView();
 
-            // --- Resizing Handle (Bottom Right Corner) ---
-            // 定义拖拽手柄区域
+            // --- 拖拽手柄 ---
             const float handleSize = 25f;
-            // 因为窗口大小是动态变化的，这里使用 _windowRect.width/height
             Rect handleRect = new Rect(_windowRect.width - handleSize, _windowRect.height - handleSize, handleSize, handleSize);
-
-            // 绘制视觉提示
             GUI.Box(handleRect, "⇲", GUI.skin.GetStyle("Button"));
 
-            // 检查鼠标是否在手柄区域按下
             Event currentEvent = Event.current;
             if (currentEvent.type == EventType.MouseDown && handleRect.Contains(currentEvent.mousePosition))
             {
-                // 仅在主按钮 (左键) 按下时开始调整
                 if (currentEvent.button == 0)
                 {
                     _isResizing = true;
-                    currentEvent.Use(); // 消耗事件，防止它被 DragWindow() 误判为移动
+                    currentEvent.Use();
                 }
             }
 
-            // 允许拖拽窗口 (DragWindow handles position dragging)
-            // 只有在没有进行大小调整时才允许位置拖拽，否则 Resize 逻辑会处理 MouseDrag 事件
             if (!_isResizing)
             {
                 GUI.DragWindow();
