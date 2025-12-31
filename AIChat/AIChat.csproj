@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    
+    <GamePath>F:\SteamLibrary\steamapps\common\Chill with You Lo-Fi Story</GamePath>
+    <UnityEditorPath>C:\Program Files\Unity\Hub\Editor\2022.3.53f1c1\Editor\Data\Managed</UnityEditorPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2E59843C-DE00-4628-A540-43F2449EA8B7}</ProjectGuid>
     <OutputType>Library</OutputType>
     
     <AssemblyName>AIChat</AssemblyName>
@@ -20,45 +25,51 @@
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>Libs\0Harmony.dll</HintPath>
+      <HintPath>$(GamePath)\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>Libs\BepInEx.dll</HintPath>
+      <HintPath>$(GamePath)\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
 
     <Reference Include="UnityEngine">
-      <HintPath>Libs\UnityEngine.dll</HintPath>
+      <HintPath>$(GamePath)\Chill With You_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Libs\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>Libs\UnityEngine.AnimationModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AudioModule">
-      <HintPath>Libs\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>$(GamePath)\Chill With You_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>Libs\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(GamePath)\Chill With You_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
+    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(GamePath)\Chill With You_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>Libs\UnityEngine.TextRenderingModule.dll</HintPath>
+    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GamePath)\Chill With You_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
-      <HintPath>Libs\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.UIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>Libs\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityEditorPath)\UnityEngine\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
