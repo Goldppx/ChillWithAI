@@ -659,12 +659,8 @@ namespace ChillAIMod
 
                     if (!string.IsNullOrEmpty(recognizedText))
                     {
-                        // 【核心功能】将识别结果填入输入框
-                        // 如果输入框已有文字，则追加在后面（加个空格）
-                        if (string.IsNullOrEmpty(_playerInput))
-                            _playerInput = recognizedText;
-                        else
-                            _playerInput += " " + recognizedText;
+                        // 【核心功能】直接发送识别结果给 AI 处理
+                        StartCoroutine(AIProcessRoutine(recognizedText));
                     }
                 }
                 else
