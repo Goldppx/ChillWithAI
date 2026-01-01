@@ -108,8 +108,16 @@ namespace ChillAIMod
         public void ClearAllMemory()
         {
             foreach (var layer in _layers) layer.Clear();
+            try
+            {
+                if (!string.IsNullOrEmpty(_saveFilePath) && File.Exists(_saveFilePath))
+                    File.Delete(_saveFilePath);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[HierarchicalMemory] 清除文件失败: {ex.Message}");
+            }
         }
-
         public string GetMemoryStats()
         {
             var sb = new StringBuilder();

@@ -482,6 +482,14 @@ namespace ChillAIMod
                 // --- 5. 人设配置 Box ---
                 GUILayout.BeginVertical("box", GUILayout.Width(innerBoxWidth));
                 GUILayout.Label("<b>--- 人设 (System Prompt) ---</b>");
+                GUILayout.BeginHorizontal();
+                _experimentalMemoryConfig.Value = GUILayout.Toggle(_experimentalMemoryConfig.Value, "启用记忆", GUILayout.Height(elementHeight));
+                if (GUILayout.Button("🗑️ 清除所有记忆", GUILayout.Width(btnWidth*3)))
+                {
+                    _hierarchicalMemory?.ClearAllMemory();
+                    Logger.LogInfo("记忆已清空");
+                }
+                GUILayout.EndHorizontal();
                 _personaScrollPosition = GUILayout.BeginScrollView(_personaScrollPosition, GUILayout.Height(elementHeight * 5));
                 _personaConfig.Value = GUILayout.TextArea(_personaConfig.Value, GUILayout.ExpandHeight(true));
                 GUILayout.EndScrollView();
@@ -653,10 +661,10 @@ namespace ChillAIMod
             if (modelName.Contains("gemma")) {
                 // 将 persona 作为背景信息放在 user 消息的最前面
                 string finalPrompt = $"[System Instruction]\n{persona}\n\n[User Message]\n{promptWithMemory}";
-                jsonBody = $@"{{ ""model"": ""{modelName}"", ""messages"": [ {{ ""role"": ""user"", ""content"": ""{EscapeJson(finalPrompt)}"" }} ]{extraJson} }}";
+                jsonBody = $@"{{ ""model"": ""{modelName}"", ""messages"": [ {{ ""role"": ""user"", ""content"": ""{ResponseParser.EscapeJson(finalPrompt)}"" }} ]{extraJson} }}";
             } else {
                 // Gemini 或 Local Ollama (如果是 Llama3 等) 通常支持 system role
-                jsonBody = $@"{{ ""model"": ""{modelName}"", ""messages"": [ {{ ""role"": ""system"", ""content"": ""{EscapeJson(persona)}"" }}, {{ ""role"": ""user"", ""content"": ""{EscapeJson(promptWithMemory)}"" }} ]{extraJson} }}";
+                jsonBody = $@"{{ ""model"": ""{modelName}"", ""messages"": [ {{ ""role"": ""system"", ""content"": ""{ResponseParser.EscapeJson(persona)}"" }}, {{ ""role"": ""user"", ""content"": ""{ResponseParser.EscapeJson(promptWithMemory)}"" }} ]{extraJson} }}";
             }
             // string jsonBody = $@"{{ ""model"": ""{modelName}"", ""messages"": [ {{ ""role"": ""system"", ""content"": ""{EscapeJson(persona)}"" }}, {{ ""role"": ""user"", ""content"": ""{EscapeJson(promptWithMemory)}"" }} ]{extraJson} }}";
             string fullResponse = "";
@@ -1062,7 +1070,7 @@ namespace ChillAIMod
             string jsonBody = $@"{{ 
                 ""model"": ""{modelName}"", 
                 ""messages"": [ 
-                    {{ ""role"": ""user"", ""content"": ""{EscapeJson(finalPrompt)}"" }} 
+                    {{ ""role"": ""user"", ""content"": ""{ResponseParser.EscapeJson(finalPrompt)}"" }} 
                 ]{extraJson} 
             }}";
 
@@ -1088,8 +1096,8 @@ namespace ChillAIMod
                     Logger.LogInfo($"[HierarchicalMemory] API 响应成功: {request.downloadHandler.text.Substring(0, Math.Min(200, request.downloadHandler.text.Length))}...");
                     
                     string response = _useLocalOllama.Value
-                        ? ExtractContentFromOllama(request.downloadHandler.text)
-                        : ExtractContentRegex(request.downloadHandler.text);
+                        ? ResponseParser.ExtractContentFromOllama(request.downloadHandler.text , Logger)
+                        : ResponseParser.ExtractContentRegex(request.downloadHandler.text);
 
                     Logger.LogInfo($"[HierarchicalMemory] 提取的总结结果: {response}");
                     onComplete?.Invoke(response);
