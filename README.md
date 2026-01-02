@@ -26,7 +26,7 @@
    - 配置好 API URL 与 API Key 以及 Model Name 并保存，此时就可以在“与聪音对话”的文本框里进行对话了（仅文字；下一节将配置语音）。
 
 ## 语音配置（可选）
-本项目依赖 [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) 生成语音，而它的文档略显混乱，所以这里提供较为详细的说明。
+本项目依赖 [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) 的 WebAPI v2 来生成语音，而它的文档着重于 Webui 和在线云服务，就我们的目的（本地部署 WebAPI v2）而言较为混乱，所以这里提供较为详细的说明。
 
 1. 安装 GPT-SoVITS：
    - Windows 用户：根据 GPT-SoVITS 的[文档](https://www.yuque.com/baicaigongchang1145haoyuangong/ib3g1e/dkxgpiy9zb96hob4)，直接下载整合包，解压后运行 `run_api.bat` 即可。如果没有 `run_api.bat`，可以自己建立一个 `run_api.bat.txt` 文件，编辑内容如下：
@@ -44,6 +44,8 @@
        cd GPT-SoVITS
        ```
      - 运行 APIv2 服务：
+       > 此项目提供的 Docker 镜像的最新版本，虽然也能用，比起 Git 仓库的版本还是旧不少。你可以考虑从克隆的 Git 仓库本地构建一下 Docker 镜像，以获得真正的最新版本，方法见其 `README.md` 的 `Building the Docker Image Locally` 一节。
+
        ```bash
        docker compose run --rm --service-ports GPT-SoVITS-CU126 python api_v2.py -a 0.0.0.0 -p 9880
        ```
