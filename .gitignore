@@ -27,3 +27,5 @@ BepInEx.dll
 
 secrets.json
 *.cfg
+
+!/build-resource/**
