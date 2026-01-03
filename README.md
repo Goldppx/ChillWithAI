@@ -1,13 +1,12 @@
-# Chill AI Mod — 简明使用说明
+# Chill AI Mod
 
-一行话概述：为游戏添加基于 LLM + 本地 VITS 的 AI 全语音对话（BepInEx 插件），让游戏角色支持实时语音与表情动作联动。
+**为游戏添加基于 LLM + VITS 的 AI 全语音对话（BepInEx 插件），让游戏角色支持实时语音与表情动作联动。**
 
 ## 特色
-- 使用任意兼容的聊天 API（如 OpenRouter/OpenAI）生成对话文本。
-- 使用本地部署的 GPT-SoVITS/TTS WebAPIv2 生成语音（无需将 TTS Key 传到云端）。
+- 使用任意兼容的聊天 API（如 OpenRouter/OpenAI/Ollama）生成对话文本。
+- 支持使用本地部署的 GPT-SoVITS/TTS WebAPIv2 生成语音（不上传语音到第三方），无需将 TTS Key 传到云端，更安全且延迟低。
 - UI 内可调节音量、窗口尺寸、保存配置，支持拖拽调整大小与精确数值输入。
-- 要求 AI 输出严格格式：`[Emotion] ||| JAPANESE TEXT ||| CHINESE TRANSLATION`，插件根据情感切换动作并播放日语语音，显示中文字幕。
-- 若 AI 未按格式返回，只显示字幕并以思考动作代替语音（避免错误语句被 TTS 读出）。
+- 要求 AI 输出严格格式：`[Emotion] ||| JAPANESE TEXT ||| CHINESE TRANSLATION`，插件根据情感切换动作并播放日语语音，显示中文字幕。若 AI 未按格式返回，只显示字幕并以思考动作代替语音（避免错误语句被 TTS 读出）。
 
 ## 安装说明
 ### 安装 Mod 本体
@@ -32,6 +31,7 @@
        - OpenRouter：`https://openrouter.ai/api/v1/chat/completions`
        - Ollama：`http://127.0.0.1:11434/v1/chat/completions`
        - Gemini：`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+   - 注意：聊天内容会发送到你配置的聊天 API（如 OpenRouter/OpenAI）；请留心 API Key 与隐私策略。
 
 ### 语音配置（可选）
 本项目依赖 [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) 的 WebAPI v2 来生成语音，
@@ -63,19 +63,22 @@
 
 2. 放置必要文件
    - 将前面下载过的 Mod 压缩包中的 `api_v2_ex.py` 和 `Voice_MainScenario_27_016.wav` 放到 `GPT-SoVITS` 的根目录下（对于 Windows 用户是整合包解压后的根目录，对于 Linux 用户是 Git 仓库的根目录）。
-   - 测试：在浏览器打开[测试链接](http://127.0.0.1:9880/tts?text=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF%E3%80%81%E3%81%8A%E5%85%83%E6%B0%97%E3%81%A7%E3%81%99%E3%81%8B%EF%BC%9F%E4%BB%8A%E6%97%A5%E3%82%82%E4%B8%80%E7%B7%92%E3%81%AB%E9%A0%91%E5%BC%B5%E3%82%8A%E3%81%BE%E3%81%97%E3%82%87%E3%81%86%EF%BC%81&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=%E5%90%9B%E3%81%8C%E9%9B%86%E4%B8%AD%E3%81%97%E3%81%9F%E6%99%82%E3%81%AE%E3%82%B7%E3%83%BC%E3%82%BF%E6%B3%A2%E3%82%92%E6%A4%9C%E5%87%BA%E3%81%97%E3%81%A6%E3%80%81%E3%83%AA%E3%83%B3%E3%82%AF%E3%82%92%E3%81%A4%E3%81%AA%E3%81%8E%E7%9B%B4%E3%81%9B%E3%81%B0%E5%85%83%E9%80%9A%E3%82%8A%E3%81%AB%E3%81%AA%E3%82%8B%E3%81%AF%E3%81%9A%E3%80%82&prompt_lang=ja&speed_factor=1.0)
-   > 上面浏览器打开的是经过转义的链接，下面是测试链接的实际内容：
-   > ```url
-   > http://127.0.0.1:9880/tts?text=こんにちは、お元気ですか？今日も一緒に頑張りましょう！&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=君が集中した時のシータ波を検出して、リンクをつなぎ直せば元通りになるはず。&prompt_lang=ja&speed_factor=1.0
-   > ```
-   > 它的基本作用是让这个 tts 服务模仿 `ref_audio_path` 所指定的音频文件（台词为 `prompt_text` 的值）来合成 `text` 的语音音频。
-   > 实际上，这里测试使用的是 GTP-SoVITS 的 WebAPI 的 GET 用法，详见 [`api_v2.py`](https://github.com/RVC-Boss/GPT-SoVITS/blob/main/api_v2.py) 的注释。
 
-   稍等片刻，将会下载一个大约 300 KiB 大小的 `tts.wav` 文件，播放它应当能清晰地听到三句与游戏角色相似的日语语音，时长约 5 秒。
-   > 或者，直接在命令行用 `ffplay`（由 FFmpeg 提供）：
-   > ```bash
-   > ffplay -nodisp -autoexit 'http://127.0.0.1:9880/tts?text=こんにちは、お元気ですか？今日も一緒に頑張りましょう！&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=君が集中した時のシータ波を検出して、リンクをつなぎ直せば元通りになるはず。&prompt_lang=ja&speed_factor=1.0&streaming_mode=True'
-   > ```
+3. 测试 TTS 服务
+   - 注：以下假设 WebAPIv2 的 TTS 服务运行于 `http://127.0.0.1:9880`。这是默认情况，若你做过改动，则在以下步骤中也要相应变更。
+   - 在浏览器打开[测试链接](http://127.0.0.1:9880/tts?text=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF%E3%80%81%E3%81%8A%E5%85%83%E6%B0%97%E3%81%A7%E3%81%99%E3%81%8B%EF%BC%9F%E4%BB%8A%E6%97%A5%E3%82%82%E4%B8%80%E7%B7%92%E3%81%AB%E9%A0%91%E5%BC%B5%E3%82%8A%E3%81%BE%E3%81%97%E3%82%87%E3%81%86%EF%BC%81&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=%E5%90%9B%E3%81%8C%E9%9B%86%E4%B8%AD%E3%81%97%E3%81%9F%E6%99%82%E3%81%AE%E3%82%B7%E3%83%BC%E3%82%BF%E6%B3%A2%E3%82%92%E6%A4%9C%E5%87%BA%E3%81%97%E3%81%A6%E3%80%81%E3%83%AA%E3%83%B3%E3%82%AF%E3%82%92%E3%81%A4%E3%81%AA%E3%81%8E%E7%9B%B4%E3%81%9B%E3%81%B0%E5%85%83%E9%80%9A%E3%82%8A%E3%81%AB%E3%81%AA%E3%82%8B%E3%81%AF%E3%81%9A%E3%80%82&prompt_lang=ja&speed_factor=1.0)
+     > 上面浏览器打开的是经过转义的链接，下面是测试链接的实际内容：
+     > ```url
+     > http://127.0.0.1:9880/tts?text=こんにちは、お元気ですか？今日も一緒に頑張りましょう！&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=君が集中した時のシータ波を検出して、リンクをつなぎ直せば元通りになるはず。&prompt_lang=ja&speed_factor=1.0
+     > ```
+     > 它的基本作用是让这个 tts 服务模仿 `ref_audio_path` 所指定的音频文件（台词为 `prompt_text` 的值）来合成 `text` 的语音音频。
+     > 实际上，这里测试使用的是 GTP-SoVITS 的 WebAPI 的 GET 用法，详见 [`api_v2.py`](https://github.com/RVC-Boss/GPT-SoVITS/blob/main/api_v2.py) 的注释。
+
+     稍等片刻，将会下载一个大约 300 KiB 大小的 `tts.wav` 文件，播放它应当能清晰地听到三句与游戏角色相似的日语语音，时长约 5 秒。
+     > 或者，直接在命令行用 `ffplay`（由 FFmpeg 提供）：
+     > ```bash
+     > ffplay -nodisp -autoexit 'http://127.0.0.1:9880/tts?text=こんにちは、お元気ですか？今日も一緒に頑張りましょう！&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=君が集中した時のシータ波を検出して、リンクをつなぎ直せば元通りになるはず。&prompt_lang=ja&speed_factor=1.0&streaming_mode=True'
+     > ```
 
 3. 在 Mod 中配置
    - 请务必确保上一步语音测试成功。否则，说明 TTS 服务未正常运行（在解决此问题之前，继续下一步是无意义的）。
@@ -194,23 +197,6 @@
 - 展开高级设置，将 `合成语音语言（text_lang）` 改为 `zh`，并勾选`跳过日语检测（强制调用 TTS）`。
 - 保存配置。
 
-## 调试与常见问题
-- 没有声音
-  - 确认已下载并正确配置本地 VITS 模型（EPIT、model 名称等）。
-  - 检查 SoVITS_URL 是否正确并能从浏览器/工具访问（如 `http://127.0.0.1:9880/tts`）。
-  - 确认 RefAudioPath 指向存在的 .wav 文件。
-- 插件没有生效 / 找不到 plugins 文件夹
-  - 运行一次游戏以生成必要的目录结构；然后将 DLL 放入 `plugins`。
-- AI 返回中文但被 TTS 读出发音异常
-  - 插件会检测是否含日文假名；若无假名则不会调用 TTS（仅显示字幕）。若你确实想让中文也生成语音，请确保 TTS 支持中文并在插件中调整 TargetLang。
-- TTS 报错或返回空音频
-  - 检查 GPT-SoVITS 日志。
-  - Mod 日志（游戏目录下的 `BepInEx` 中的 `LogOutput.log`）会打印 TTS 错误和响应文本，作为排查依据，尤其注意请求发送的 JSON 数据（插件在请求体中会传入 `text`、`text_lang`、`ref_audio_path`、`prompt_text`、`prompt_lang`）。
-
-## 安全与隐私
-- 聊天内容会发送到你配置的聊天 API（如 OpenRouter/OpenAI）；请注意 API Key 与隐私策略。
-- TTS 请求默认向本地 GPT-SoVITS 服务发起（不上传语音到第三方），更安全且延迟低。
-
 ## 构建
 本 Mod 的核心 `AIChat.dll` 可从仓库构建。首先要克隆仓库到本地，然后：
 - 在 Windows 下可使用 Visual Studio 构建（方法暂略）；
@@ -224,3 +210,20 @@
     git ls-files --others --ignored --exclude-standard
     ```
 - 在线构建：本项目由 GitHub Action 每日自动构建（也可由维护者手动触发），见 [Release Preview Build](https://github.com/qzrs777/AIChat/releases/tag/latest)。[![Build Status](https://github.com/qzrs777/AIChat/actions/workflows/build.yml/badge.svg)](https://github.com/qzrs777/AIChat/actions/workflows/build.yml)
+
+## 调试与常见问题
+Mod 日志为游戏目录下的 `BepInEx` 中的 `LogOutput.log`。
+其中有 TTS 错误和响应文本，尤其注意请求发送的 JSON 数据（插件在请求体中会传入 `text`、`text_lang`、`ref_audio_path`、`prompt_text`、`prompt_lang`）。
+
+- TTS 报错 / TTS 返回空音频 / 没有声音
+  - 确认是否能通过`测试 TTS 服务`这一步。
+    - 若不能，说明 TTS 服务未正确配置（与本 Mod 无关），可进一步确认是否已下载并正确配置本地 VITS 模型（EPIT、model 名称等）。
+    - 若能，可能是 Mod 中的配置出错。请检查 BepInEx 配置项中 `SoVITS_URL` 是否正确（默认值 `http://127.0.0.1:9880`，测试方法请参考`测试 TTS 服务`的说明）。
+  - 检查 GPT-SoVITS 日志（控制台界面）。
+  - 检查 Mod 日志
+- 插件没有生效 / 找不到 plugins 文件夹
+  - 运行一次游戏，以生成必要的目录结构；之后再将 `AIChat.dll` 放入 `BepInEx/plugins` 下。
+- AI 返回中文，但被 TTS 读出发音异常
+  - 检查 Mod 日志
+  - 若 AI 返回的内容不符合格式要求，请确保使用合适的 Persona，或尝试更换 AI 模型。
+  - 注：插件默认会检测语音文本是否含日文假名，若无假名则不会调用 TTS，而仅显示字幕文本。
