@@ -11,14 +11,17 @@
 
 ## 安装 Mod 本体
 1. 下载 Mod
-   - 从 [Releases](https://github.com/qzrs777/AIChat/releases) 下载本项目发布的压缩包，并解压。
-     - 注：其核心部分 `AIChat.dll` 也可从本仓库源码构建得到，参见文末。
+   - 从 [Releases](https://github.com/qzrs777/AIChat/releases) 下载 `AIChatMod.zip` 并解压。
+     - 推荐使用带版本号的稳定版；
+       Preview Build 属于预览版，比稳定版更新，相对来说有 bug 的概率会更高一些（实际结果也可能反过来）。
 
 2. 安装 Mod
    - 在 Steam 右键游戏 -> 管理 -> 浏览本地文件（或直接定位游戏根目录）。
    - 将压缩包内的 `BepInEx_*` 下的内容复制到游戏根目录。
      - Linux 用户请注意：Mod 能被加载的原理是，Windows 中的一些程序在启动时，同目录下的 DLL 文件（这里的是 `winhttp.dll`）比原本的 DLL 文件具有更高的优先级，从而被加载；但是在 Linux 下，Proton 自己的 DLL 文件具有更高的优先级，会无视同目录下的 `winhttp.dll`。所以，你需要在 Steam 的此游戏的设置里，将启动选项填写为 `WINEDLLOVERRIDES="winhttp=n,b" %command%` （其中 `winhttp` 就是 `winhttp.dll` 的文件名）。
-   - 运行一次游戏（用于生成插件目录结构，这包括 `BepInEx` 目录下的 `config`、`core`、`patchers`、`plugins` 等目录）。
+   - 运行一次游戏。
+     - 这一步用于生成插件目录结构，包括 `BepInEx` 目录下的 `config`、`core`、`patchers`、`plugins` 等目录。
+     - 如果没有生成目录结构，说明 Mod 未正确加载，请先解决此问题，继续下一步是无意义的。
    - 将 `AIChat.dll` 放入 `BepInEx` 下的 `plugins` 目录中。
 
 3. 配置 Mod
@@ -74,7 +77,8 @@
    > ```
 
 3. 在 Mod 中配置
-  - 确保上一步测试成功后，在游戏按 F9 键调出 Mod 的界面，聊天以进行测试。
+  - 务必确保上一步语音测试成功。若否，说明 GPT-SoVITS 未正常运行，请先解决此问题，继续下一步是无意义的。
+  - 在游戏按 F9 键调出 Mod 的界面，聊天以进行测试。
   - 下面的参数默认都已填好，**一般不要改动**，如下：
     - 音频路径(.wav) ：`Voice_MainScenario_27_016.wav`
     - 从 Mod 侧检测音频文件路径：不勾选
