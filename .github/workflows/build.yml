@@ -82,7 +82,7 @@ jobs:
 
             此构建的 Commit 信息：
             - HASH： ${{ steps.info.outputs.hash }}
-            - 时间（UTC+8）：${{ steps.info.outputs.time }}
+            - 时间：${{ steps.info.outputs.time }}
           prerelease: true
           files: AIChatMod.zip
         env:
