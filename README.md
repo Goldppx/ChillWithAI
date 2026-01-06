@@ -194,6 +194,7 @@
     ```bash
     git ls-files --others --ignored --exclude-standard
     ```
+- 在线构建：Fork 本仓库，并在你的仓库中启用 GitHub Actions，再手动触发 `Build and Package AIChat Mod` 这个 workflow 即可在线构建，并自动发布到 Releases 中（tag 固定为 `preview`）。此 workflow 还可通过推送涉及特定路径的提交来触发，参见 [build.yml](https://github.com/qzrs777/AIChat/blob/main/.github/workflows/build.yml)。
 
 ## 问题排查
 前提说明：
