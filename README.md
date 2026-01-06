@@ -24,7 +24,7 @@
      - 这一步用于生成插件目录结构，包括 `BepInEx` 目录下的 `config`、`core`、`patchers`、`plugins` 等目录。
 
 3. 安装 Mod
-   - 请务必确保上一步已生成目录结构。否则，说明 BepInEx 前置未正确加载（在解决此问题之前，继续下一步是无意义的）。
+   - **请务必确保上一步已生成目录结构。否则，说明 BepInEx 前置未正确加载（在解决此问题之前，继续下一步是无意义的）。**
    - 将 `AIChat.dll` 放入 `BepInEx` 下的 `plugins` 目录中。
    - 打开游戏，按 F9 键或 F10 键调出 Mod 的界面。
    - 在 LLM 配置中，填写 API URL 与 API Key 以及模型名称并保存，此时就可以在“与聪音对话”的文本框里进行对话了（仅文字；下一节将配置语音）。
@@ -74,15 +74,17 @@
      > ```
      > 它的基本作用是让这个 TTS 服务模仿 `ref_audio_path` 所指定的音频文件（台词为 `prompt_text` 的值）来合成 `text` 的语音音频。
      > 实际上，这里测试使用的是 WebAPI v2 的 GET 用法，详见 [`api_v2.py`](https://github.com/RVC-Boss/GPT-SoVITS/blob/main/api_v2.py) 的注释。
-
-     稍等片刻，将会下载一个大约 300 KiB 大小的 `tts.wav` 文件，播放它应当能清晰地听到三句与游戏角色相似的日语语音，时长约 5 秒。
-     > 或者，直接在命令行用 `ffplay`（由 FFmpeg 提供）：
+     > 另外，若你的命令行有 `ffplay`（由 FFmpeg 提供），这样测试也可以：
      > ```bash
      > ffplay -nodisp -autoexit 'http://127.0.0.1:9880/tts?text=こんにちは、お元気ですか？今日も一緒に頑張りましょう！&text_lang=ja&ref_audio_path=Voice_MainScenario_27_016.wav&prompt_text=君が集中した時のシータ波を検出して、リンクをつなぎ直せば元通りになるはず。&prompt_lang=ja&speed_factor=1.0&streaming_mode=True'
      > ```
 
+     - 测试过程中，GSV 会自动下载 `https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin` 到 GSV 目录下的 `GPT_SoVITS/pretrained_models/fast_langdetect/lid.176.bin`。
+       - Docker 用户可将目录 `fast_langdetect ` 映射出去以实现数据持久化。
+     - 稍等片刻，将会下载一个大约 300 KiB 大小的 `tts.wav` 文件，播放它应当能清晰地听到三句与游戏角色相似的日语语音，时长约 5 秒。
+
 3. 在 Mod 中配置
-   - 请务必确保上一步语音测试成功。否则，说明 TTS 服务未正常运行（在解决此问题之前，继续下一步是无意义的）。
+   - **请务必确保上一步语音测试成功。否则，说明 TTS 服务未正常运行（在解决此问题之前，继续下一步是无意义的）。**
    - 在游戏按 F9 键调出 Mod 的界面，聊天以进行测试。
    - 对于 TTS 配置，下面的参数默认都已填好，**一般不要改动**，如下：
      - `TTS 服务 URL`：`http://127.0.0.1:9880`
@@ -94,8 +96,9 @@
 4. 配置语音识别（可选）
    - 前面我们已经将 `api_v2_ex.py` 复制到 GPT-SoVITS 根目录下，但为了稳定起见，之前启动的是 `api_v2.py`，它是不支持语音识别的。
    - 现在，将前面启动 WebAPI v2 的有关代码中的 `api_v2.py` 改为 `api_v2_ex.py`，再重新启动 WebAPI v2 服务。
-     > 相比原版 `api_v2.py`，`api_v2_ex.py` 通过 Faster Whisper ASR 模型实现了语音识别。
-
+     - 说明：相比原版 `api_v2.py`，`api_v2_ex.py` 通过 Faster Whisper ASR 模型实现了语音识别。
+     - 启动过程中，Faster Whisper 会自动从 Hugging Face Hub 下载模型到本地 Hugging Face 的缓存中，对于 Linux 来说是 `~/.cache/huggingface/`，Docker 用户可将此目录映射出去以实现数据持久化。
+     - 若报错 `Requested int8_float16 compute type, but the target device or backend do not support efficient int8_float16 computation.`，可尝试将 `api_v2_ex.py` 中 `asr_model = WhisperModel(` 后面的参数 `compute_type=` 跟着的值 `"int8_float16"` 改为其他值，例如 `"float16"`、`"int8"`，参见 [faster-whisper 自述文档](https://github.com/SYSTRAN/faster-whisper)。
    - 确保电脑连接的麦克风能正常运行（可以[在网上搜索 `麦克风在线测试`](https://www.bing.com/search?q=%E9%BA%A6%E5%85%8B%E9%A3%8E%E5%9C%A8%E7%BA%BF%E6%B5%8B%E8%AF%95)）。
    - 测试使用：在游戏中的 Mod 界面，左键按住 `按住说话` 按钮，对着麦克风说话，然后松开。等待片刻，角色将以语音回复。
 
