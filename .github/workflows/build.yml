@@ -62,7 +62,7 @@ jobs:
         id: info
         run: |
           echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "time=$(git log -1 --date=format-local:'%Y-%m-%d %H:%M:%S UTC+8' --format='%cd')" >> $GITHUB_OUTPUT
+          echo "time=$(TZ='Asia/Shanghai' git log -1 --date=format-local:'%Y-%m-%d %H:%M:%S +0800' --format='%cd')" >> $GITHUB_OUTPUT
         env:
           TZ: UTC
 
