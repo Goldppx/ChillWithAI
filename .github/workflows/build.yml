@@ -66,8 +66,9 @@ jobs:
         env:
           TZ: UTC
 
-      - name: Delete old preview release
-        run: gh release delete preview --yes || true
+      - name: Delete old preview release with tag
+        continue-on-error: true
+        run: gh release delete preview --cleanup-tag --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Latest Preview Release
