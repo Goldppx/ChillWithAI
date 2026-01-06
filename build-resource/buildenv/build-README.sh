@@ -15,7 +15,7 @@ pandoc \
   --css=${BUILD_ENV_DIR}/github.css \
   -f gfm --to=html5 \
   --highlight-style=haddock \
-  --output=${ASSETS_DIR}/README.html \
+  --output=${ASSETS_DIR}/请读我.html \
   README.md
 
 echo "Build README.html complete!"
