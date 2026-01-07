@@ -1,4 +1,4 @@
-name: Build and Package AIChat Mod
+name: Build for Preview Release
 
 on:
   workflow_dispatch:
