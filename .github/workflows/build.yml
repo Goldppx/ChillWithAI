@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-    paths: [ .github/workflows/build.yml,AIChat/**,build-resource/buildenv/** ]
+    paths: [ .github/workflows/build.yml,AIChat/**,build-resource/** ]
 
 permissions:
   contents: write
@@ -26,8 +26,8 @@ jobs:
         id: cache-unity
         uses: actions/cache@v4
         with:
-          path: build-resource/buildenv/mokgamedir/Chill With You_Data/Managed
-          key: unity-assemblies-${{ hashFiles('install-deps.py') }}
+          path: build-resource/mokgamedir/Chill With You_Data/Managed
+          key: unity-assemblies-${{ hashFiles('build-resource/fetch.py') }}
           restore-keys: |
             unity-assemblies-
       - name: Cache BepInEx
@@ -35,23 +35,22 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build-resource/assets/BepInEx_win_x64
-          key: bepinex-${{ hashFiles('install-deps.py') }}
+          key: bepinex-${{ hashFiles('build-resource/fetch.py') }}
           restore-keys: |
             bepinex-
 
-      - name: Run install-deps.py
+      - name: Run fetch.py
         if: steps.cache-unity.outputs.cache-hit != 'true' || steps.cache-bepinex.outputs.cache-hit != 'true'
-        run: |
-          python3 install-deps.py
+        run: python3 build-resource/fetch.py
 
       - name: Build AIChat.dll
         run: |
           cd ${{ github.workspace }}
           dotnet build -c Release
-          cp AIChat/bin/Release/**/AIChat.dll build-resource/assets/
+          cp AIChat/bin/Release/net472/AIChat.dll build-resource/assets/
 
       - name: Add README.html
-        run: build-resource/buildenv/build-README.sh
+        run: build-resource/readme/build.sh
 
       - name: Zip Artifact
         run: |
@@ -62,10 +61,8 @@ jobs:
         id: info
         run: |
           echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "time=$(git log -1 --date=format-local:'%Y-%m-%d %H:%M:%S UTC+8' --format='%cd')" >> $GITHUB_OUTPUT
-        env:
-          TZ: UTC
-
+          echo "time=$(TZ=Asia/Shanghai git log -1 --date=format-local:'%Y-%m-%d %H:%M:%S UTC+8' --format='%cd')" >> $GITHUB_OUTPUT
+          
       - name: Delete old preview release with tag
         continue-on-error: true
         run: gh release delete preview --cleanup-tag --yes
@@ -82,7 +79,7 @@ jobs:
 
             此构建的 Commit 信息：
             - HASH： ${{ steps.info.outputs.hash }}
-            - 时间（UTC+8）：${{ steps.info.outputs.time }}
+            - 时间：${{ steps.info.outputs.time }}
           prerelease: true
           files: AIChatMod.zip
         env:

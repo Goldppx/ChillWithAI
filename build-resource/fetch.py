@@ -10,9 +10,9 @@ from pathlib import Path
 UNITY_VERSION = "2021.3.33"
 BEPINEX_VERSION = "5.4.23.4"
 
-PROJECT_DIR = Path(__file__).parent.absolute()
-UNITY_DEPS_DIR = PROJECT_DIR / "build-resource/buildenv/mokgamedir/Chill With You_Data/Managed"
-BEPINEX_DIR = PROJECT_DIR / "build-resource/assets/BepInEx_win_x64"
+SCRIPT_DIR = Path(__file__).parent.absolute()
+UNITY_DEPS_DIR = SCRIPT_DIR / "mokgamedir/Chill With You_Data/Managed"
+BEPINEX_DIR = SCRIPT_DIR / "assets/BepInEx_win_x64"
 
 BEPINEX_URL = f"https://github.com/BepInEx/BepInEx/releases/download/v{BEPINEX_VERSION}/BepInEx_win_x64_{BEPINEX_VERSION}.zip"
 

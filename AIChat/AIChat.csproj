@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UnityDepsPath>$(MSBuildProjectDirectory)\..\build-resource\buildenv\mokgamedir\\Chill With You_Data\Managed</UnityDepsPath>
+    <UnityDepsPath>$(MSBuildProjectDirectory)\..\build-resource\mokgamedir\\Chill With You_Data\Managed</UnityDepsPath>
     <BepInExPath>$(MSBuildProjectDirectory)\..\build-resource\assets\BepInEx_win_x64\BepInEx\core</BepInExPath>
   
     <TargetFramework>net472</TargetFramework>
