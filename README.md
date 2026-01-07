@@ -192,18 +192,22 @@
 - 安装依赖：
   - python（`python --version` 验证）
   - .NET SDK（`dotnet --version` 验证）
-- 正式构建：
+    - Debian 13 可安装 `dotnet-sdk-8.0`
+- 准备构建所需文件：
   ```sh
   python build-resource/fetch.py
+  ```
+- 正式构建：
+  ```sh
   dotnet build
   ```
-  - 若要构建 Release 版本，则改为运行 `dotnet build -c Release`
-  - 在 Linux 下可改为运行 `make`。
-- 构建产物位于 `AIChat/bin/Release/net472/AIChat.dll` 。
-  - 提示：运行此命令可查看所有被 `.gitignore` 忽略的文件（在构建时所生成的文件一般都需要被忽略）：
-    ```bash
-    git ls-files --others --ignored --exclude-standard
-    ```
+  - 默认构建 Debug 版本。若要构建 Release 版本，运行 `dotnet build -c Release`。
+- 构建产物位于 `AIChat/bin/<构建种类>/<.NET 版本>/AIChat.dll`
+  > 提示：运行此命令可查看所有被 `.gitignore` 忽略的文件（在构建时所生成的文件一般都需要被忽略）：
+  > ```bash
+  > git ls-files --others --ignored --exclude-standard
+  > ```
+
 ### 在线构建
 - Fork 本仓库；
 - 在你的仓库中启用 GitHub Actions；
