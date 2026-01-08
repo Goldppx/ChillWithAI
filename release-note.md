@@ -12,4 +12,10 @@
 - 若有相同 tag 的 Release，原 Release 将被删除。
 - BepInEx 对插件版本号有格式要求，所以 V1.0.0 这种是不可以的，将会无法加载。
 -->
-更新内容：
+基础设施更新：
+- 解耦 LLM 构建逻辑、LLM 请求逻辑、Logger 逻辑（by @GarfieldGod ）
+  - 分离 LLM 请求体构建逻辑
+  - 分离 LLM 发送请求逻辑
+  - 分离 BepInEx 和 Logger
+  - 增加 Console 调试模式，可用 `dotnet build -c Console` 构建 `exe` 可执行程序，不必开启游戏就能调试。
+
