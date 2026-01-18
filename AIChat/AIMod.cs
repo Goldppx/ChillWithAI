@@ -1355,7 +1355,7 @@ namespace ChillAIMod
                 // 如果有其他按钮，将新按钮放在最下面
                 if (children.Count > 1) // 至少有一个其他按钮
                 {
-                    RectTransform lowestButton = children[0]; // 第一个是最下面的
+                    RectTransform lowestButton = children[3]; // 第一个是最下面的
                     float spacing = 10f;
                     rectTransform.anchoredPosition = new Vector2(
                         lowestButton.anchoredPosition.x,
