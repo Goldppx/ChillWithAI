@@ -249,6 +249,9 @@ namespace ChillAIMod
             Log.Info($">>> AIMod V{AIChat.Version.VersionString}  已加载 <<<");
         }
 
+        private bool _aiChatButtonAdded = false;
+        private GameObject _aiChatButton;
+
         void Update()
         {
             // 自动连接游戏核心
@@ -271,6 +274,12 @@ namespace ChillAIMod
                     _isAISpeaking = false;
                     GameBridge._cachedAnimator.SetBool("Enable_Talk", false);
                 }
+            }
+
+            // 检查并添加AI聊天按钮
+            if (!_aiChatButtonAdded && Time.frameCount % 300 == 0) // 每5秒检查一次，避免频繁查找
+            {
+                AddAIChatButtonToRightIcons();
             }
         }
 
@@ -1272,6 +1281,104 @@ namespace ChillAIMod
             if (_hierarchicalMemory != null && _experimentalMemoryConfig.Value)
             {
                 _hierarchicalMemory.AddMessage($"{role}: {content}");
+            }
+        }
+
+        /// <summary>
+        /// 在屏幕右面的按钮最下面添加一个AI聊天按钮
+        /// </summary>
+        private void AddAIChatButtonToRightIcons()
+        {
+            try
+            {
+                // 查找RightIcons容器（参考UIRearrangePatch.cs中的路径）
+                string rightIconsPath = "Paremt/Canvas/UI/MostFrontArea/RightIcons";
+                GameObject rightIcons = GameObject.Find(rightIconsPath);
+                
+                if (rightIcons == null)
+                {
+                    Log.Warning($"找不到RightIcons容器: {rightIconsPath}");
+                    return;
+                }
+                
+                // 创建新按钮游戏对象
+                _aiChatButton = new GameObject("IconAIChat_Button");
+                
+                // 设置为RightIcons的子节点
+                _aiChatButton.transform.SetParent(rightIcons.transform, false);
+                
+                // 添加RectTransform组件
+                RectTransform rectTransform = _aiChatButton.AddComponent<RectTransform>();
+                
+                // 获取RightIcons中其他按钮的大小作为参考
+                float buttonSize = 80f; // 默认大小
+                if (rightIcons.transform.childCount > 0)
+                {
+                    RectTransform firstButtonRect = rightIcons.transform.GetChild(0).GetComponent<RectTransform>();
+                    if (firstButtonRect != null)
+                    {
+                        buttonSize = Mathf.Max(firstButtonRect.sizeDelta.x, firstButtonRect.sizeDelta.y);
+                    }
+                }
+                
+                // 设置按钮大小
+                rectTransform.sizeDelta = new Vector2(buttonSize, buttonSize);
+                
+                // 添加Image组件，设置为红色矩形
+                Image image = _aiChatButton.AddComponent<Image>();
+                image.color = Color.red;
+                
+                // 添加Button组件
+                Button button = _aiChatButton.AddComponent<Button>();
+                
+                // 添加点击事件
+                button.onClick.AddListener(() =>
+                {
+                    _showInputWindow = !_showInputWindow;
+                });
+                
+                // 设置按钮位置到最底部
+                // 获取所有子节点并按位置排序
+                List<RectTransform> children = new List<RectTransform>();
+                for (int i = 0; i < rightIcons.transform.childCount; i++)
+                {
+                    RectTransform childRect = rightIcons.transform.GetChild(i).GetComponent<RectTransform>();
+                    if (childRect != null)
+                    {
+                        children.Add(childRect);
+                    }
+                }
+                
+                // 按Y坐标排序（Unity UI中Y值越小越靠下）
+                children.Sort((a, b) => a.anchoredPosition.y.CompareTo(b.anchoredPosition.y));
+                
+                // 如果有其他按钮，将新按钮放在最下面
+                if (children.Count > 1) // 至少有一个其他按钮
+                {
+                    RectTransform lowestButton = children[0]; // 第一个是最下面的
+                    float spacing = 10f;
+                    rectTransform.anchoredPosition = new Vector2(
+                        lowestButton.anchoredPosition.x,
+                        lowestButton.anchoredPosition.y - (buttonSize + spacing)
+                    );
+                }
+                else
+                {
+                    // 如果是第一个按钮，居中放置
+                    rectTransform.anchoredPosition = Vector2.zero;
+                }
+                
+                // 设置锚点和pivot，使其与其他按钮一致
+                rectTransform.anchorMin = new Vector2(1f, 1f);
+                rectTransform.anchorMax = new Vector2(1f, 1f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                
+                _aiChatButtonAdded = true;
+                Log.Info($"✅ AI聊天按钮已添加到RightIcons容器");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"添加AI聊天按钮失败: {ex.Message}");
             }
         }
     }
