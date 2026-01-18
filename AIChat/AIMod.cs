@@ -367,6 +367,43 @@ namespace ChillAIMod
             GUI.skin.textArea.fontSize = dynamicFontSize;
             GUI.skin.toggle.fontSize = dynamicFontSize;
             GUI.skin.box.fontSize = dynamicFontSize;
+            
+            // 设置滚动条透明度跟随面板透明度
+            // 创建自定义滚动条样式
+            GUIStyle verticalScrollbarStyle = new GUIStyle(GUI.skin.verticalScrollbar);
+            GUIStyle verticalScrollbarThumbStyle = new GUIStyle(GUI.skin.verticalScrollbarThumb);
+            GUIStyle horizontalScrollbarStyle = new GUIStyle(GUI.skin.horizontalScrollbar);
+            GUIStyle horizontalScrollbarThumbStyle = new GUIStyle(GUI.skin.horizontalScrollbarThumb);
+            
+            // 创建半透明的纹理
+            Texture2D scrollbarBgTexture = new Texture2D(1, 1);
+            scrollbarBgTexture.SetPixel(0, 0, new Color(0.3f, 0.3f, 0.3f, _backgroundOpacity.Value));
+            scrollbarBgTexture.Apply();
+            
+            Texture2D scrollbarThumbTexture = new Texture2D(1, 1);
+            scrollbarThumbTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 0.5f, _backgroundOpacity.Value));
+            scrollbarThumbTexture.Apply();
+            
+            // 设置滚动条样式
+            verticalScrollbarStyle.normal.background = scrollbarBgTexture;
+            verticalScrollbarStyle.hover.background = scrollbarBgTexture;
+            verticalScrollbarStyle.active.background = scrollbarBgTexture;
+            verticalScrollbarThumbStyle.normal.background = scrollbarThumbTexture;
+            verticalScrollbarThumbStyle.hover.background = scrollbarThumbTexture;
+            verticalScrollbarThumbStyle.active.background = scrollbarThumbTexture;
+            
+            horizontalScrollbarStyle.normal.background = scrollbarBgTexture;
+            horizontalScrollbarStyle.hover.background = scrollbarBgTexture;
+            horizontalScrollbarStyle.active.background = scrollbarBgTexture;
+            horizontalScrollbarThumbStyle.normal.background = scrollbarThumbTexture;
+            horizontalScrollbarThumbStyle.hover.background = scrollbarThumbTexture;
+            horizontalScrollbarThumbStyle.active.background = scrollbarThumbTexture;
+            
+            // 应用自定义样式
+            GUI.skin.verticalScrollbar = verticalScrollbarStyle;
+            GUI.skin.verticalScrollbarThumb = verticalScrollbarThumbStyle;
+            GUI.skin.horizontalScrollbar = horizontalScrollbarStyle;
+            GUI.skin.horizontalScrollbarThumb = horizontalScrollbarThumbStyle;
 
             // 基础行高
             float elementHeight = dynamicFontSize * 1.6f;
