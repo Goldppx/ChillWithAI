@@ -61,6 +61,12 @@ namespace ChillAIMod
         // --- 新增：快捷键配置 ---
         private ConfigEntry<bool> _reverseEnterBehaviorConfig;
 
+        // --- 新增：背景透明配置 ---
+        private ConfigEntry<float> _backgroundOpacity;
+        
+        // --- 新增：窗口标题显示配置 ---
+        private ConfigEntry<bool> _showWindowTitle;
+
         // --- 新增：各配置区域展开状态 ---
         private bool _showLlmSettings = false;
         private bool _showTtsSettings = false;
@@ -176,6 +182,12 @@ namespace ChillAIMod
             _windowHeightConfig = Config.Bind("3. UI", "WindowHeightBase", responsiveHeight, "窗口高度");
             _reverseEnterBehaviorConfig = Config.Bind("3. UI", "ReverseEnterBehavior", false, 
                 "反转回车键行为（勾选后：回车键换行、Shift+回车键发送；不勾选：回车键发送、Shift+回车键换行）");
+            
+            // 背景透明配置
+            _backgroundOpacity = Config.Bind("3. UI", "BackgroundOpacity", 0.95f, "背景透明度 (0.0 - 1.0)");
+            
+            // 窗口标题显示配置
+            _showWindowTitle = Config.Bind("3. UI", "ShowWindowTitle", true, "显示窗口标题");
 
             // --- 人设配置 ---
             _experimentalMemoryConfig = Config.Bind("4. Persona", "ExperimentalMemory", false, 
@@ -333,8 +345,10 @@ namespace ChillAIMod
                 }
                 // --- 动态调整窗口高度和宽度结束 ---
 
-                GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f, 0.95f);
-                _windowRect = GUI.Window(12345, _windowRect, DrawWindowContent, "Chill AI 控制台");
+                GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f, _backgroundOpacity.Value);
+                // 根据配置决定是否显示窗口标题
+                string windowTitle = _showWindowTitle.Value ? "Chill AI 控制台" : "";
+                _windowRect = GUI.Window(12345, _windowRect, DrawWindowContent, windowTitle);
                 GUI.FocusWindow(12345);
             }
         }
@@ -570,6 +584,28 @@ namespace ChillAIMod
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
                     
+                    // 窗口标题显示配置
+                    _showWindowTitle.Value = GUILayout.Toggle(_showWindowTitle.Value, 
+                        "显示窗口标题", GUILayout.Height(elementHeight));
+                    GUILayout.Space(5);
+                    
+                    // 背景透明配置
+                    GUILayout.Label($"背景透明度：{_backgroundOpacity.Value:F2}");
+                    
+                    // 滑动条
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(5);
+                    float newOpacity = GUILayout.HorizontalSlider(_backgroundOpacity.Value, 0.0f, 1.0f);
+                    GUILayout.Space(5);
+                    GUILayout.EndHorizontal();
+                    
+                    if (newOpacity != _backgroundOpacity.Value)
+                    {
+                        _backgroundOpacity.Value = newOpacity;
+                    }
+                    
+                    GUILayout.Space(5);
+
                     // 快捷键配置
                     _reverseEnterBehaviorConfig.Value = GUILayout.Toggle(_reverseEnterBehaviorConfig.Value, 
                         "反转回车键行为（勾选后：回车换行，Shift+回车发送）", GUILayout.Height(elementHeight));
@@ -666,7 +702,7 @@ namespace ChillAIMod
             _playerInput = GUILayout.TextArea(_playerInput, largeInputStyle, GUILayout.Height(dynamicInputHeight));
 
             GUILayout.Space(5);
-            GUI.backgroundColor = _isProcessing ? Color.gray : Color.cyan;
+            GUI.backgroundColor = _isProcessing ? Color.gray : new Color(0.1725f, 0.1608f, 0.2784f);
 
             GUILayout.BeginHorizontal();
 
@@ -694,7 +730,7 @@ namespace ChillAIMod
             }
             else
             {
-                GUI.backgroundColor = _isRecording ? Color.red : Color.green;
+                GUI.backgroundColor = _isRecording ? Color.red : new Color(0.1725f, 0.1608f, 0.2784f);
             }
             string micBtnText;
             if (_isProcessing)
