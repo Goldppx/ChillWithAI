@@ -61,6 +61,12 @@ namespace ChillAIMod
         // --- 新增：快捷键配置 ---
         private ConfigEntry<bool> _reverseEnterBehaviorConfig;
 
+        // --- 新增：背景透明配置 ---
+        private ConfigEntry<float> _backgroundOpacity;
+        
+        // --- 新增：窗口标题显示配置 ---
+        private ConfigEntry<bool> _showWindowTitle;
+
         // --- 新增：各配置区域展开状态 ---
         private bool _showLlmSettings = false;
         private bool _showTtsSettings = false;
@@ -176,6 +182,12 @@ namespace ChillAIMod
             _windowHeightConfig = Config.Bind("3. UI", "WindowHeightBase", responsiveHeight, "窗口高度");
             _reverseEnterBehaviorConfig = Config.Bind("3. UI", "ReverseEnterBehavior", false, 
                 "反转回车键行为（勾选后：回车键换行、Shift+回车键发送；不勾选：回车键发送、Shift+回车键换行）");
+            
+            // 背景透明配置
+            _backgroundOpacity = Config.Bind("3. UI", "BackgroundOpacity", 0.95f, "背景透明度 (0.0 - 1.0)");
+            
+            // 窗口标题显示配置
+            _showWindowTitle = Config.Bind("3. UI", "ShowWindowTitle", true, "显示窗口标题");
 
             // --- 人设配置 ---
             _experimentalMemoryConfig = Config.Bind("4. Persona", "ExperimentalMemory", false, 
@@ -237,6 +249,9 @@ namespace ChillAIMod
             Log.Info($">>> AIMod V{AIChat.Version.VersionString}  已加载 <<<");
         }
 
+        private bool _aiChatButtonAdded = false;
+        private GameObject _aiChatButton;
+
         void Update()
         {
             // 自动连接游戏核心
@@ -259,6 +274,12 @@ namespace ChillAIMod
                     _isAISpeaking = false;
                     GameBridge._cachedAnimator.SetBool("Enable_Talk", false);
                 }
+            }
+
+            // 检查并添加AI聊天按钮
+            if (!_aiChatButtonAdded && Time.frameCount % 300 == 0) // 每5秒检查一次，避免频繁查找
+            {
+                AddAIChatButtonToRightIcons();
             }
         }
 
@@ -333,8 +354,10 @@ namespace ChillAIMod
                 }
                 // --- 动态调整窗口高度和宽度结束 ---
 
-                GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f, 0.95f);
-                _windowRect = GUI.Window(12345, _windowRect, DrawWindowContent, "Chill AI 控制台");
+                GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f, _backgroundOpacity.Value);
+                // 根据配置决定是否显示窗口标题
+                string windowTitle = _showWindowTitle.Value ? "Chill AI 控制台" : "";
+                _windowRect = GUI.Window(12345, _windowRect, DrawWindowContent, windowTitle);
                 GUI.FocusWindow(12345);
             }
         }
@@ -353,6 +376,43 @@ namespace ChillAIMod
             GUI.skin.textArea.fontSize = dynamicFontSize;
             GUI.skin.toggle.fontSize = dynamicFontSize;
             GUI.skin.box.fontSize = dynamicFontSize;
+            
+            // 设置滚动条透明度跟随面板透明度
+            // 创建自定义滚动条样式
+            GUIStyle verticalScrollbarStyle = new GUIStyle(GUI.skin.verticalScrollbar);
+            GUIStyle verticalScrollbarThumbStyle = new GUIStyle(GUI.skin.verticalScrollbarThumb);
+            GUIStyle horizontalScrollbarStyle = new GUIStyle(GUI.skin.horizontalScrollbar);
+            GUIStyle horizontalScrollbarThumbStyle = new GUIStyle(GUI.skin.horizontalScrollbarThumb);
+            
+            // 创建半透明的纹理
+            Texture2D scrollbarBgTexture = new Texture2D(1, 1);
+            scrollbarBgTexture.SetPixel(0, 0, new Color(0.3f, 0.3f, 0.3f, _backgroundOpacity.Value));
+            scrollbarBgTexture.Apply();
+            
+            Texture2D scrollbarThumbTexture = new Texture2D(1, 1);
+            scrollbarThumbTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 0.5f, _backgroundOpacity.Value));
+            scrollbarThumbTexture.Apply();
+            
+            // 设置滚动条样式
+            verticalScrollbarStyle.normal.background = scrollbarBgTexture;
+            verticalScrollbarStyle.hover.background = scrollbarBgTexture;
+            verticalScrollbarStyle.active.background = scrollbarBgTexture;
+            verticalScrollbarThumbStyle.normal.background = scrollbarThumbTexture;
+            verticalScrollbarThumbStyle.hover.background = scrollbarThumbTexture;
+            verticalScrollbarThumbStyle.active.background = scrollbarThumbTexture;
+            
+            horizontalScrollbarStyle.normal.background = scrollbarBgTexture;
+            horizontalScrollbarStyle.hover.background = scrollbarBgTexture;
+            horizontalScrollbarStyle.active.background = scrollbarBgTexture;
+            horizontalScrollbarThumbStyle.normal.background = scrollbarThumbTexture;
+            horizontalScrollbarThumbStyle.hover.background = scrollbarThumbTexture;
+            horizontalScrollbarThumbStyle.active.background = scrollbarThumbTexture;
+            
+            // 应用自定义样式
+            GUI.skin.verticalScrollbar = verticalScrollbarStyle;
+            GUI.skin.verticalScrollbarThumb = verticalScrollbarThumbStyle;
+            GUI.skin.horizontalScrollbar = horizontalScrollbarStyle;
+            GUI.skin.horizontalScrollbarThumb = horizontalScrollbarThumbStyle;
 
             // 基础行高
             float elementHeight = dynamicFontSize * 1.6f;
@@ -570,6 +630,28 @@ namespace ChillAIMod
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
                     
+                    // 窗口标题显示配置
+                    _showWindowTitle.Value = GUILayout.Toggle(_showWindowTitle.Value, 
+                        "显示窗口标题", GUILayout.Height(elementHeight));
+                    GUILayout.Space(5);
+                    
+                    // 背景透明配置
+                    GUILayout.Label($"背景透明度：{_backgroundOpacity.Value:F2}");
+                    
+                    // 滑动条
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(5);
+                    float newOpacity = GUILayout.HorizontalSlider(_backgroundOpacity.Value, 0.0f, 1.0f);
+                    GUILayout.Space(5);
+                    GUILayout.EndHorizontal();
+                    
+                    if (newOpacity != _backgroundOpacity.Value)
+                    {
+                        _backgroundOpacity.Value = newOpacity;
+                    }
+                    
+                    GUILayout.Space(5);
+
                     // 快捷键配置
                     _reverseEnterBehaviorConfig.Value = GUILayout.Toggle(_reverseEnterBehaviorConfig.Value, 
                         "反转回车键行为（勾选后：回车换行，Shift+回车发送）", GUILayout.Height(elementHeight));
@@ -666,7 +748,7 @@ namespace ChillAIMod
             _playerInput = GUILayout.TextArea(_playerInput, largeInputStyle, GUILayout.Height(dynamicInputHeight));
 
             GUILayout.Space(5);
-            GUI.backgroundColor = _isProcessing ? Color.gray : Color.cyan;
+            GUI.backgroundColor = _isProcessing ? Color.gray : new Color(0.1725f, 0.1608f, 0.2784f);
 
             GUILayout.BeginHorizontal();
 
@@ -694,7 +776,7 @@ namespace ChillAIMod
             }
             else
             {
-                GUI.backgroundColor = _isRecording ? Color.red : Color.green;
+                GUI.backgroundColor = _isRecording ? Color.red : new Color(0.1725f, 0.1608f, 0.2784f);
             }
             string micBtnText;
             if (_isProcessing)
@@ -1199,6 +1281,116 @@ namespace ChillAIMod
             if (_hierarchicalMemory != null && _experimentalMemoryConfig.Value)
             {
                 _hierarchicalMemory.AddMessage($"{role}: {content}");
+            }
+        }
+
+        /// <summary>
+        /// 在屏幕右面的按钮最下面添加一个AI聊天按钮
+        /// </summary>
+        private void AddAIChatButtonToRightIcons()
+        {
+            try
+            {
+                // 查找RightIcons容器（参考UIRearrangePatch.cs中的路径）
+                string rightIconsPath = "Paremt/Canvas/UI/MostFrontArea/TopIcons";
+                GameObject rightIcons = GameObject.Find(rightIconsPath);
+                
+                if (rightIcons == null)
+                {
+                    Log.Warning($"找不到RightIcons容器: {rightIconsPath}");
+                    return;
+                }
+                
+                // 创建新按钮游戏对象
+                _aiChatButton = new GameObject("IconAIChat_Button");
+                
+                // 设置为RightIcons的子节点
+                _aiChatButton.transform.SetParent(rightIcons.transform, false);
+                
+                // 添加RectTransform组件
+                RectTransform rectTransform = _aiChatButton.AddComponent<RectTransform>();
+                
+                // 获取RightIcons中其他按钮的大小作为参考
+                float buttonSize = 60f; // 默认大小
+                if (rightIcons.transform.childCount > 0)
+                {
+                    RectTransform firstButtonRect = rightIcons.transform.GetChild(0).GetComponent<RectTransform>();
+                    if (firstButtonRect != null)
+                    {
+                        buttonSize = Mathf.Max(firstButtonRect.sizeDelta.x, firstButtonRect.sizeDelta.y);
+                    }
+                }
+                
+                // 设置按钮大小
+                rectTransform.sizeDelta = new Vector2(buttonSize, buttonSize);
+
+                // 添加Image组件
+                Image image = _aiChatButton.AddComponent<Image>();
+
+                try
+                {
+                    image.sprite = EmbeddedSpriteLoader.Load("ai_chat.png");
+                    image.color = Color.white;
+                    image.preserveAspect = true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"加载内置图片失败: {ex}");
+                    image.color = Color.red; // 兜底
+                }
+
+
+                // 添加Button组件
+                Button button = _aiChatButton.AddComponent<Button>();
+                
+                // 添加点击事件
+                button.onClick.AddListener(() =>
+                {
+                    _showInputWindow = !_showInputWindow;
+                });
+                
+                // 设置按钮位置到最底部
+                // 获取所有子节点并按位置排序
+                List<RectTransform> children = new List<RectTransform>();
+                for (int i = 0; i < rightIcons.transform.childCount; i++)
+                {
+                    RectTransform childRect = rightIcons.transform.GetChild(i).GetComponent<RectTransform>();
+                    if (childRect != null)
+                    {
+                        children.Add(childRect);
+                    }
+                }
+                
+                // 按Y坐标排序（Unity UI中Y值越小越靠下）
+                children.Sort((a, b) => a.anchoredPosition.y.CompareTo(b.anchoredPosition.y));
+                
+                // 如果有其他按钮，将新按钮放在最下面
+                if (children.Count > 1) // 至少有一个其他按钮
+                {
+                    RectTransform lowestButton = children[3]; // 第一个是最下面的
+                    float spacing = 10f;
+                    rectTransform.anchoredPosition = new Vector2(
+                        lowestButton.anchoredPosition.x,
+                        lowestButton.anchoredPosition.y - (buttonSize + spacing)
+                    );
+                }
+                else
+                {
+                    // 如果是第一个按钮，居中放置
+                    rectTransform.anchoredPosition = Vector2.zero;
+                }
+                
+                // 设置锚点和pivot，使其与其他按钮一致
+                rectTransform.anchorMin = new Vector2(1f, 1f);
+                rectTransform.anchorMax = new Vector2(1f, 1f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                
+                _aiChatButtonAdded = true;
+                Log.Info($"✅ AI聊天按钮已添加到RightIcons容器");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"添加AI聊天按钮失败: {ex.Message}");
             }
         }
     }

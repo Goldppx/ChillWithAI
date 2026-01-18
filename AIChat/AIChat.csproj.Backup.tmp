@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UnityDepsPath>$(MSBuildProjectDirectory)\..\build-resource\mokgamedir\\Chill With You_Data\Managed</UnityDepsPath>
@@ -53,11 +53,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="ai_chat.png" />
+    <None Remove="image.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="ai_chat.png" />
+    <EmbeddedResource Include="image.jpg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -116,10 +116,6 @@
     <Reference Include="UnityEngine.UnityWebRequestModule">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(UnityDepsPath)\UnityEngine.UnityWebRequestModule.dll</HintPath>
-    </Reference>
-   <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <SpecificVersion>True</SpecificVersion>
-      <HintPath>$(UnityDepsPath)\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
