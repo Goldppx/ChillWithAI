@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -61,14 +61,11 @@ namespace ChillAIMod
         // --- 新增：快捷键配置 ---
         private ConfigEntry<bool> _reverseEnterBehaviorConfig;
 
-        // --- 背景透明配置 ---
+        // --- 新增：背景透明配置 ---
         private ConfigEntry<float> _backgroundOpacity;
         
-        // --- 窗口标题显示配置 ---
+        // --- 新增：窗口标题显示配置 ---
         private ConfigEntry<bool> _showWindowTitle;
-        
-        // --- 隐藏滚动条和拖拽手柄配置 ---
-        private ConfigEntry<bool> _hideScrollbarAndHandle;
 
         // --- 新增：各配置区域展开状态 ---
         private bool _showLlmSettings = false;
@@ -191,9 +188,6 @@ namespace ChillAIMod
             
             // 窗口标题显示配置
             _showWindowTitle = Config.Bind("3. UI", "ShowWindowTitle", true, "显示窗口标题");
-            
-            // 隐藏滚动条和拖拽手柄配置
-            _hideScrollbarAndHandle = Config.Bind("3. UI", "HideScrollbarAndHandle", false, "隐藏右侧滚动条和右下角拖拽手柄");
 
             // --- 人设配置 ---
             _experimentalMemoryConfig = Config.Bind("4. Persona", "ExperimentalMemory", false, 
@@ -383,19 +377,8 @@ namespace ChillAIMod
             float btnWidth   = elementHeight * 2f; 
             // =======================================================
 
-            // 开始滚动视图，根据配置决定是否显示滚动条
-            if (_hideScrollbarAndHandle.Value)
-            {
-                // 使用固定宽度的矩形来隐藏滚动条
-                float contentWidth = _windowRect.width - 50f; // 与内部Box宽度保持一致
-                Rect viewRect = new Rect(0, 0, contentWidth, 10000); // 足够大的高度
-                Rect visibleRect = new Rect(0, 0, contentWidth, _windowRect.height - 100f); // 可见区域
-                _scrollPosition = GUI.BeginScrollView(visibleRect, _scrollPosition, viewRect, false, false);
-            }
-            else
-            {
-                _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
-            }
+            // 开始滚动视图
+            _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
             
             // 开始整体垂直布局
             GUILayout.BeginVertical();
@@ -627,11 +610,6 @@ namespace ChillAIMod
                     _reverseEnterBehaviorConfig.Value = GUILayout.Toggle(_reverseEnterBehaviorConfig.Value, 
                         "反转回车键行为（勾选后：回车换行，Shift+回车发送）", GUILayout.Height(elementHeight));
                     GUILayout.Space(5);
-                    
-                    // 隐藏滚动条和拖拽手柄配置
-                    _hideScrollbarAndHandle.Value = GUILayout.Toggle(_hideScrollbarAndHandle.Value, 
-                        "隐藏右侧滚动条和右下角拖拽手柄", GUILayout.Height(elementHeight));
-                    GUILayout.Space(5);
                 }
                 
                 GUILayout.EndVertical(); 
@@ -802,32 +780,20 @@ namespace ChillAIMod
 
             // 结束整体布局
             GUILayout.EndVertical();
-            
-            // 根据开始时使用的方法选择对应的结束方法
-            if (_hideScrollbarAndHandle.Value)
-            {
-                GUI.EndScrollView();
-            }
-            else
-            {
-                GUILayout.EndScrollView();
-            }
+            GUILayout.EndScrollView();
 
-            // --- 拖拽手柄 ---（根据配置决定是否显示）
-            if (!_hideScrollbarAndHandle.Value)
-            {
-                const float handleSize = 25f;
-                Rect handleRect = new Rect(_windowRect.width - handleSize, _windowRect.height - handleSize, handleSize, handleSize);
-                GUI.Box(handleRect, "⇲", GUI.skin.GetStyle("Button"));
+            // --- 拖拽手柄 ---
+            const float handleSize = 25f;
+            Rect handleRect = new Rect(_windowRect.width - handleSize, _windowRect.height - handleSize, handleSize, handleSize);
+            GUI.Box(handleRect, "⇲", GUI.skin.GetStyle("Button"));
 
-                Event currentEvent = Event.current;
-                if (currentEvent.type == EventType.MouseDown && handleRect.Contains(currentEvent.mousePosition))
+            Event currentEvent = Event.current;
+            if (currentEvent.type == EventType.MouseDown && handleRect.Contains(currentEvent.mousePosition))
+            {
+                if (currentEvent.button == 0)
                 {
-                    if (currentEvent.button == 0)
-                    {
-                        _isResizing = true;
-                        currentEvent.Use();
-                    }
+                    _isResizing = true;
+                    currentEvent.Use();
                 }
             }
 
