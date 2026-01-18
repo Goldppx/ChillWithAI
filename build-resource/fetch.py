@@ -31,7 +31,8 @@ UNITY_DLL_LIST = [
     "UnityEngine.TextRenderingModule.dll",
     "UnityEngine.UIModule.dll",
     "UnityEngine.UnityWebRequestModule.dll",
-    "UnityEngine.UnityWebRequestAudioModule.dll"
+    "UnityEngine.UnityWebRequestAudioModule.dll",
+    "UnityEngine.ImageConversionModule.dll"
 ]
 
 BEPINEX_DLL_LIST = [

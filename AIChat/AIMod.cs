@@ -1292,7 +1292,7 @@ namespace ChillAIMod
             try
             {
                 // 查找RightIcons容器（参考UIRearrangePatch.cs中的路径）
-                string rightIconsPath = "Paremt/Canvas/UI/MostFrontArea/RightIcons";
+                string rightIconsPath = "Paremt/Canvas/UI/MostFrontArea/TopIcons";
                 GameObject rightIcons = GameObject.Find(rightIconsPath);
                 
                 if (rightIcons == null)
@@ -1311,7 +1311,7 @@ namespace ChillAIMod
                 RectTransform rectTransform = _aiChatButton.AddComponent<RectTransform>();
                 
                 // 获取RightIcons中其他按钮的大小作为参考
-                float buttonSize = 80f; // 默认大小
+                float buttonSize = 60f; // 默认大小
                 if (rightIcons.transform.childCount > 0)
                 {
                     RectTransform firstButtonRect = rightIcons.transform.GetChild(0).GetComponent<RectTransform>();
@@ -1323,11 +1323,23 @@ namespace ChillAIMod
                 
                 // 设置按钮大小
                 rectTransform.sizeDelta = new Vector2(buttonSize, buttonSize);
-                
-                // 添加Image组件，设置为红色矩形
+
+                // 添加Image组件
                 Image image = _aiChatButton.AddComponent<Image>();
-                image.color = Color.red;
-                
+
+                try
+                {
+                    image.sprite = EmbeddedSpriteLoader.Load("ai_chat.png");
+                    image.color = Color.white;
+                    image.preserveAspect = true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"加载内置图片失败: {ex}");
+                    image.color = Color.red; // 兜底
+                }
+
+
                 // 添加Button组件
                 Button button = _aiChatButton.AddComponent<Button>();
                 

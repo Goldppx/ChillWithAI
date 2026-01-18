@@ -12,10 +12,8 @@
 - 若有相同 tag 的 Release，原 Release 将被删除。
 - BepInEx 对插件版本号有格式要求，所以 V1.0.0 这种是不可以的，将会无法加载。
 -->
-基础设施更新：
-- 解耦 LLM 构建逻辑、LLM 请求逻辑、Logger 逻辑（by @GarfieldGod ）
-  - 分离 LLM 请求体构建逻辑
-  - 分离 LLM 发送请求逻辑
-  - 分离 BepInEx 和 Logger
-  - 增加 Console 调试模式，可用 `dotnet build -c Console` 构建 `exe` 可执行程序，不必开启游戏就能调试。
-
+主要更新：
+-现在可以关闭插件的标题文字显示（by @Goldppx ）
+-现在可以调整插件的背景不透明度（by @Goldppx ）
+-发送和语音的按钮换用了和游戏UI和谐的颜色（by @Goldppx ）
+-新增打开控制台的按钮
